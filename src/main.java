@@ -27,6 +27,7 @@ public class main {
 		System.out.println("5: Déchiffrement Cramer-Shoup");
 		System.out.println("6: Vérification d'un Hash");
 		
+		// On déclare la variable qui contient le menu
 		int menuInt = scanner.nextInt();
 		
 		System.out.println("Vous avez sélectionner le menu : " + menuInt);
