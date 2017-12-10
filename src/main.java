@@ -37,7 +37,7 @@ public class main {
 		
 		switch(menuInt) {
 			case 1 : 
-				newContentFile = crypto.ThreeFish("");
+				newContentFile = crypto.ThreeFish(fileContent);
 				break;
 			case 2 : 
 				newContentFile = crypto.CramerShoup("");
