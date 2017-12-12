@@ -104,7 +104,7 @@ public class utils {
 	}
 
 	//Casse une chaîne en plusieurs (longeur en paramètre)
-	static String[] splitByNumber(String str, int size) {
+	static String[] SplitByNumber(String str, int size) {
 		String[] tab = str.split("(?<=\\G.{"+size+"})");
 		return tab;
 	}
@@ -129,7 +129,7 @@ public class utils {
 	
 	public static void main(String[] args) {
 		//KeyGenerator(256);
-		//System.out.println(Arrays.toString(splitByNumber("Ceci est ~une (courte) phrase.", 4)));
+		//System.out.println(Arrays.toString(SplitByNumber("Ceci est ~une (courte) phrase.", 4)));
 		//StringToBin("GS15");
 	}
 }
