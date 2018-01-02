@@ -1,5 +1,5 @@
 import java.io.File;
-import java.util.Scanner;
+import java.util.*;
 
 public class main {
 
@@ -7,19 +7,22 @@ public class main {
 		Scanner scanner = new Scanner(System.in);
 		
 		// Choix du fichier
-		System.out.println("Ecrivez le nom du fichier sans l'extension !");
+		System.out.println("Ecrivez le nom du fichier avec l'extension !");
 		String fileName = scanner.nextLine();
+		String[] fileInfo = fileName.split("\\.");	//[0] Nom 	[1] Extension
+		//System.out.println(Arrays.toString(fileInfo));
+		
 		
 		// On récupère le fichier
-		File fichier = new File("files/" + fileName + ".txt");
+		File fichier = new File("files/" + fileName);
+		
 		
 		// On récupère le contenu du fichier
 		String fileContent = utils.ReadFile(fichier);
-		
-		System.out.println(fileContent);
+		//System.out.println(fileContent);
 		
 		// choix de la méthode de chiffrement
-		System.out.println("Sélectionner votre fonction de chiffrement");
+		System.out.println("\nSélectionner l'action souhaitée :");
 		System.out.println("1: Chiffrement symétrique ThreeFish");
 		System.out.println("2: Chiffrement de Cramer-Shoup");
 		System.out.println("3: Hashage d'un message");
@@ -37,7 +40,7 @@ public class main {
 		
 		switch(menuInt) {
 			case 1 : 
-				newContentFile = crypto.ThreeFish(fileContent);
+				newContentFile = crypto.ThreeFish(fileInfo, fileContent);
 				break;
 			case 2 : 
 				newContentFile = crypto.CramerShoup("");
@@ -57,7 +60,7 @@ public class main {
 		}
 		
 		// On créé un nouveau fichier avec le résultat
-		utils.CreateFile(fileName, newContentFile);
+		//utils.CreateFile(fileName, newContentFile);
 	}
 
 }
