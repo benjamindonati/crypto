@@ -27,6 +27,7 @@ public class utils {
 			InputStreamReader ipsr=new InputStreamReader(ips);
 			BufferedReader br=new BufferedReader(ipsr);
 			String ligne;
+			System.out.println("Contenu :");
 			while ((ligne=br.readLine())!=null){
 				System.out.println(ligne);
 				fileContent+=ligne+"\n";
@@ -62,20 +63,80 @@ public class utils {
 		}
 	}	
 
-	//Casse une chaîne en plusieurs (longueur en paramètre)
+//	Casse une chaîne en plusieurs (longueur des sous_chaînes en paramètre)
 	static String[] SplitByNumber(String str, int size) {
 		String[] tab = str.split("(?<=\\G.{"+size+"})");
+		String toAdd = "";
+//		Si la dernière chaîne est plus courte, on comble avec des 0		
+		if (tab[tab.length-1].length() != size) {
+			for (int i = tab[tab.length-1].length()-1; i < size-1; i++) {
+				toAdd += "0";
+			}
+		}
+		tab[tab.length-1] += toAdd;
 		return tab;
 	}
+	
+//	Convertit une chaîne en binaire (table ascii)
+	static String StringToBin(String text) {
+		byte[] bytes = text.getBytes();
+		StringBuilder binary = new StringBuilder();
+		for (byte b : bytes)
+		{
+		   int val = b;
+		   for (int i = 0; i < 8; i++)
+		   {
+		      binary.append((val & 128) == 0 ? 0 : 1);
+		      val <<= 1;
+		   }
+//		   binary.append(' ');
+		}
+//		System.out.println(binary);
+		return binary.toString();
+	}
 
-	//Convertit un hexadécimal (passé en String) en binaire
+//	Convertit un hexadécimal (passé en String) en binaire
 	static String hexToBin(String s) {
 		String bin = String.format("%128s", new BigInteger(s, 16).toString(2)).replace(" ", "0");
-		//System.out.println(bin);
+//		System.out.println(bin);
 		return bin;
 	}
 	
+//	Renvoie le résultat du XOR de 2 binaires
+	static String xor(String num1, String num2) {
+		StringBuilder sb = new StringBuilder();
+		try{
+			for (int i = 0; i < num1.length(); i++) {
+		    	sb.append(((num1.charAt(i) == '1') ? '1' : '0') ^ ((num2.charAt(i) == '1') ? '1' : '0'));
+		    }
+		}		
+		catch (Exception e){
+			System.out.println(e.toString());
+		}	    
+//	    System.out.println(sb.toString());
+	    return sb.toString();
+	}
 	
+	
+//	Addition binaire tronquée au 64ème bit (inclut) 
+	static String add2pow64 (String num1, String num2) {
+		System.out.println(num1);
+		System.out.println(String.format("%0$64s", num2));
+		BigInteger number0 = new BigInteger(num1, 2);
+		BigInteger number1 = new BigInteger(num2, 2);
+		String result = String.format("%0$64s", number0.add(number1).toString(2)).replace(" ", "0");
+//		System.out.println(result);
+//		System.out.println(String.format("%0$64s", result).replace(" ", "0"));
+		if (result.length() > 64) {
+			return result.substring(1, 65);
+		} else {
+			return result;
+		}
+		
+	}
+	
+//	Fonction de hashage utilisée : MD5
+//	Taille du digest de sortie : 128 bits	
 	private static final int INIT_A = 0x67452301;
 	private static final int INIT_B = (int)0xEFCDAB89L;
 	private static final int INIT_C = (int)0x98BADCFEL;
@@ -171,9 +232,12 @@ public class utils {
 	}
 	
 	public static void main(String[] args) {
-//		System.out.println(Arrays.toString(SplitByNumber("Ceci est ~une (courte) phrase.", 4)));
+//		System.out.println(Arrays.toString(SplitByNumber("GS15UTT", 4)));
+//		StringToBin("gs15");
 //		System.out.println(calcMD5("test".getBytes()));
 //		System.out.println(calcMD5("Test".getBytes()));
 //		hexToBin(calcMD5("Test".getBytes()));
+//		xor("010", "111");
+		add2pow64("0011011111001001011001011010100011010110110101111011111011000010", "1110");
 	}
 }
