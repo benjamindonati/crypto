@@ -2,7 +2,10 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.math.BigInteger;
 import java.util.*;
+
+import sun.misc.FloatingDecimal.BinaryToASCIIConverter;
 
 // Classe qui comprend tous les algorithmes de chiffrage et de hashage
 
@@ -100,51 +103,107 @@ public class crypto {
 				System.out.println("Merci de saisir 256, 512 ou 1024");
 				break;
 		}		
-
+		System.out.println("\nChiffrement en cours...\n");
 		kinit = utils.hexToBin(kinit);		
 		String[] Ktemp = utils.SplitByNumber(kinit, 64);
 		
 //		Ajout de la constante C
 		for (String e : Ktemp){
-			kn1 = utils.xor(kn1, e);
+			kn1 = utils.XOR(kn1, e);
 		}
-		kn1 = utils.xor(kn1, c);
-		System.out.println(kn1);
+		kn1 = utils.XOR(kn1, c);
+//		System.out.println(kn1);
 		
 		kinit += kn1;
 		String[] K = utils.SplitByNumber(kinit, 64);
-		System.out.println(Arrays.toString(K) + "\n");
+//		System.out.println(Arrays.toString(K) + "\n");
 		
 //		Tweaks
-		String[] tweaks = {K[0], K[1], utils.xor(K[0], K[1])};
+		String[] tweaks = {K[0], K[1], utils.XOR(K[0], K[1])};
 		
 //		Calculs des clés de tournées
 		int i, j;
-		String[][] roundKeys = new String[20][N+1];
+		String[][] roundKeys = new String[20][N];
 		for (i = 0; i < 20; i++) {
 			for (j = 0; j <= N-4; j++) {
-				System.out.println(i + " " + j);
+//				System.out.println(i + " " + j);
 				roundKeys[i][j] = K[(i+j)%(N+1)];
-				System.out.println(roundKeys[i][j]);
+//				System.out.println(roundKeys[i][j]);
 			}
 			if (j == N-3) {
-				System.out.println(i + " " + j);
-				roundKeys[i][j] = utils.add2pow64(K[(i+j)%(N+1)], tweaks[i%3]) ;
-				System.out.println(roundKeys[i][j]);
+//				System.out.println(i + " " + j);
+				roundKeys[i][j] = utils.add2powN(K[(i+j)%(N+1)], tweaks[i%3], 64);
+//				System.out.println(roundKeys[i][j]);
 				j++;
 			}
 			if (j == N-2) {
-				System.out.println(i + " " + j);
-				roundKeys[i][j] = utils.add2pow64(K[(i+j)%(N+1)], tweaks[(i+1)%3]) ;
-				System.out.println(roundKeys[i][j]);
+//				System.out.println(i + " " + j);
+				roundKeys[i][j] = utils.add2powN(K[(i+j)%(N+1)], tweaks[(i+1)%3], 64) ;
+//				System.out.println(roundKeys[i][j]);
 				j++;
 			}
 			if (j == N-1) {
-				System.out.println(i + " " + j);
-				roundKeys[i][j] = utils.add2pow64(K[(i+j)%(N+1)], Integer.toBinaryString(i)) ;
-				System.out.println(roundKeys[i][j]);
+//				System.out.println(i + " " + j);
+				roundKeys[i][j] = utils.add2powN(K[(i+j)%(N+1)], Integer.toBinaryString(i), 64) ;
+//				System.out.println(roundKeys[i][j]);
 			}
-		}			
+		}	
+		
+//		System.out.println(fileOriginalContent);
+//		System.out.println(Arrays.toString(fileSplittedContent));
+		    
+//		Chiffrement (ECB)
+		int counter = 0;
+		String added = "", keyInUse = "", finalResultBin = "";
+		String[] finalResultTab = new String[utils.Counter(fileSplittedContent)];
+		String[] subWord = new String[N], Temp = new String[N/2];
+		String[][] blocks = new String[N/2][2];	
+		for (String word : fileSplittedContent) {
+//			System.out.println("O : " + word);
+		}
+		for (String word : fileSplittedContent) {
+			for (int round = 0; round < 19; round++) {
+				keyInUse = "";
+				for (int k = 0; k < N; k++) {
+					keyInUse += roundKeys[round][k];
+				}
+				added = utils.add2powN(word, keyInUse, size);
+//				System.out.println(round);
+//				System.out.println(added);
+				subWord = utils.SplitByNumber(added, 64);
+				for (int count = 0; count < 4; count++) {
+//					System.out.println("count = " + count);
+//					System.out.println("ok");
+					blocks = utils.Divide2(subWord, N);
+					blocks = utils.Mix(blocks, N);
+					subWord = utils.Permute(blocks, N);
+				}
+				word = "";
+//				System.out.println(Arrays.toString(subWord));
+				for(String e : subWord) {
+//					System.out.println(e);
+					word += e;
+				}
+			}
+//			Dernier ajout avec la 20ème clé
+			keyInUse = "";
+			for (int k = 0; k < N; k++) {
+				keyInUse += roundKeys[19][k];
+			}
+			word = utils.add2powN(word, keyInUse, size);
+//			System.out.println("F : " + word);
+			finalResultTab[counter] = word;
+			counter++;
+		}
+		for(String part : finalResultTab) {
+			finalResultBin += part;
+		}
+//		On reforme le résultat en caractères ascii
+		BigInteger tempNum = new BigInteger(finalResultBin, 2);
+		String finalResultText = new String(tempNum.toByteArray());
+//		Écriture dans un nouveau fichier
+		utils.CreateFile(fileOriginalInfo[0] + "_ThreeFish" + size, finalResultText);	
+		System.out.println("Chiffrement avec TreeFish " + size + " bits terminé.");
 		return "";
 	}
 	

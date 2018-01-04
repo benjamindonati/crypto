@@ -103,36 +103,128 @@ public class utils {
 	}
 	
 //	Renvoie le résultat du XOR de 2 binaires
-	static String xor(String num1, String num2) {
-		StringBuilder sb = new StringBuilder();
-		try{
-			for (int i = 0; i < num1.length(); i++) {
-		    	sb.append(((num1.charAt(i) == '1') ? '1' : '0') ^ ((num2.charAt(i) == '1') ? '1' : '0'));
-		    }
-		}		
-		catch (Exception e){
-			System.out.println(e.toString());
-		}	    
-//	    System.out.println(sb.toString());
-	    return sb.toString();
+	static String XOR(String num1, String num2) {;
+		String form = "0000000000000000000000000000000000000000000000000000000000000000";
+		BigInteger num1bi = new BigInteger(num1, 2); 
+		BigInteger num2bi = new BigInteger(num2, 2);
+		String XOR = (num1bi.xor(num2bi)).toString(2);
+		int xorLength = XOR.length();
+		int finalLength = 64 - (num1.length()-xorLength);
+		String res = (form + (num1bi.xor(num2bi)).toString(2));
+		return res.substring(finalLength);
 	}
 	
 	
-//	Addition binaire tronquée au 64ème bit (inclut) 
-	static String add2pow64 (String num1, String num2) {
-		System.out.println(num1);
-		System.out.println(String.format("%0$64s", num2));
+//	Addition binaire tronquée au Nème bit (inclus) 
+	static String add2powN (String num1, String num2, int N) {
+//		System.out.println(num1);
+//		System.out.println(String.format("%0$64s", num2));
 		BigInteger number0 = new BigInteger(num1, 2);
 		BigInteger number1 = new BigInteger(num2, 2);
-		String result = String.format("%0$64s", number0.add(number1).toString(2)).replace(" ", "0");
+		String result = String.format("%0$" + N + "s", number0.add(number1).toString(2)).replace(" ", "0");
 //		System.out.println(result);
 //		System.out.println(String.format("%0$64s", result).replace(" ", "0"));
-		if (result.length() > 64) {
-			return result.substring(1, 65);
+		if (result.length() > N) {
+			return result.substring(1, N+1);
 		} else {
 			return result;
 		}
 		
+	}
+	
+//	Convertit un array simple de N éléments en un array de 2 colomnes et N/2 lignes
+//	Cet array contiendra nos blocs de 2 mots
+	static String[][] Divide2 (String[] tab, int N) {
+		String[][] blocks = new String[N/2][2];
+		int num = 0;
+		for (int i = 0; i < (N/2); i++) {
+			blocks[i][0] = tab[num];
+			num++;
+			blocks[i][1] = tab[num];
+			num++;
+		}
+				
+		return blocks;
+	}
+	
+	static String[][] Mix(String[][] blocks, int N) {
+		int shift = 37;
+		for (int i = 0; i < (N/2); i++) {
+//			System.out.println("iMix = " + i);
+//	        System.out.println(blocks[i][0]);
+//	        System.out.println(blocks[i][1]);
+//			Calcul de m'1
+			blocks[i][0] = add2powN(blocks[i][0], blocks[i][1], 64);
+//			Déclage de m2 de 37 bits
+			int length = blocks[i][1].length();
+	        int offset = ((shift % length) + length) % length;
+	        String m2shifted = blocks[i][1].substring( offset, length ) + blocks[i][1].substring( 0, offset );
+//	        Calcul de m'2
+	        blocks[i][1] = XOR(blocks[i][0], m2shifted);
+//	        System.out.println(blocks[i][0]);
+//	        System.out.println(blocks[i][1]);
+		}
+//	System.out.println(Arrays.deepToString(blocks));
+	return blocks;
+	}
+	
+	
+//	Chaque bloc de deux mots est inversé (le mot 1 devient le 2ème et vice-versa)
+//	Chaque mot de 64 bits est divisé en 16 mots de 4 bits
+//	On inversera ensuite l'ordre des bits de chacun de ces mots 
+	static String[] Permute (String[][]blocks, int N) {
+//		String[][] tempTab = blocks;
+//		System.out.println(tempTab[0][0]);
+//		System.out.println(tempTab[0][1]);
+		String[] permute = new String[16];
+		String[] result = new String[N];
+		for (int i = 0; i < (N/2); i++) {
+//			Inversment des blocs de 2 mots
+			String temp1 = blocks[i][0], temp2 = blocks[i][1];
+			blocks[i][0] = temp2;
+			blocks[i][1] = temp1;
+//			System.out.println("i = " + i);
+//			System.out.println(blocks[i][0]);
+//			System.out.println(blocks[i][1]);			
+			for (int j = 0; j < 2; j++) {
+//				On split le mot de 64 bits en 16 mots de 4 bits
+//				System.out.println("i = " + i + " et j = " + j);
+				permute = SplitByNumber(blocks[i][j], 4);
+//				System.out.println(Arrays.toString(permute));
+				blocks[i][j] = "";
+				for(String bits : permute) {
+//					On inverse l'ordre des bits de chaque mot
+//					Et on recompose le mot de 64 bits
+					blocks[i][j] += StrReverse(bits);
+//					System.out.println("bits = " + bits);
+//					System.out.println("inv = " + blocks[i][j]);
+				}
+//				System.out.println(Arrays.toString(blocks[i]));
+			}			
+			result[2*i] = blocks[i][0];
+			result[(2*i)+1] = blocks[i][1];
+//			System.out.println(Arrays.toString(result));
+		}
+		return result;
+	}
+	
+//	Inverse une chaîne
+	static String StrReverse(String word) {
+	    String reverse = "";
+	    int length = word.length();
+	    for( int i = length - 1 ; i >= 0 ; i-- ) {
+	       reverse = reverse + word.charAt(i);
+	    }
+	    return reverse;
+	}
+	
+//	Renvoie le nombre d'éléments d'un array
+	static int Counter(String[] tab) {
+		int i = 0;
+		for(String s : tab) {
+			i++;
+		}
+		return i;
 	}
 	
 //	Fonction de hashage utilisée : MD5
@@ -237,7 +329,11 @@ public class utils {
 //		System.out.println(calcMD5("test".getBytes()));
 //		System.out.println(calcMD5("Test".getBytes()));
 //		hexToBin(calcMD5("Test".getBytes()));
-//		xor("010", "111");
-		add2pow64("0011011111001001011001011010100011010110110101111011111011000010", "1110");
+//		XOR("0001101111010001000110111101101010101001111111000001101000100010000110111101000100011011110110101010100111111100000110100010001000011011110100010001101111011010101010011111110000011010001000100001101111010001000110111101101010101001111111000001101000100010000110111101000100011011110110101010100111111100000110100010001000011011110100010001101111011010101010011111110000011010001000100001101111010001000110111101101010101001111111000001101000100010", "0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001");
+//		add2pow64("0011011111001001011001011010100011010110110101111011111011000010", "1110");
+		String[][] test = new String[][]{
+			  {"0101010101010000011101001010101010101011001010101010100010101001", "0011011111001001011001011010100011010110110101111011111011000010"},
+			  {"0100101101010101010100101010100101010011101101011010101011111011", "0000110110110110001100000110110000101010100011101001000110001011"}
+			};
 	}
 }
