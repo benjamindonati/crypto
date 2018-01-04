@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
 import java.math.BigInteger;
+import sun.misc.FloatingDecimal.BinaryToASCIIConverter;
 
 // Classe qui comprend tous les algorithmes de chiffrage et de hashage
 
@@ -26,14 +27,14 @@ public class crypto {
 
 	static String ThreeFish(String [] fileOriginalInfo, String fileOriginalContent) {
 		Scanner scanner = new Scanner(System.in);
-		//		size : taille des blocs ; N : nombre de mots de 64 bits
+//		size : taille des blocs ; N : nombre de mots de 64 bits
 		int size = 256, N = 4, pwdLength = 0;
 		String kinit = "", t2 = "", kFile = "", kn1 = "0000000000000000000000000000000000000000000000000000000000000000";
 		String[] fileSplittedContent = {};
 		String c = "0001101111010001000110111101101010101001111111000001101000100010";
 
 
-		//		Choix du mot de passe de chiffrement
+//		Choix du mot de passe de chiffrement
 		String pwd = "";
 		do {
 			System.out.println("Saisir un mot de passe de chiffrement :");
@@ -43,10 +44,10 @@ public class crypto {
 				System.out.println("Ce mot de passe n'est pas assez long (4 caractères minimum)");
 			}
 		} while (pwdLength < 4);
-		//		System.out.println(pwd);
+//		System.out.println(pwd);
 		String[] pwdChar = pwd.split("");
 
-		//		Choix de la taille de blocs/clés à utiliser
+//		Choix de la taille de blocs/clés à utiliser
 		System.out.println("Sélectionner la taille des blocs");
 		System.out.println("1: 256 bits");
 		System.out.println("2: 512 bits");
