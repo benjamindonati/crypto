@@ -48,7 +48,7 @@ public class crypto {
 		String[] pwdChar = pwd.split("");
 
 //		Choix de la taille de blocs/clés à utiliser
-		System.out.println("Sélectionner la taille des blocs");
+		System.out.println("\nSélectionner la taille des blocs");
 		System.out.println("1: 256 bits");
 		System.out.println("2: 512 bits");
 		System.out.println("3: 1024 bits");	
@@ -116,7 +116,23 @@ public class crypto {
 			default:
 				System.out.println("Merci de saisir 256, 512 ou 1024");
 				break;
-		}		
+		}	
+		
+//		Choix du mode de chiffrement (ECB ou CBC)
+		String mode = "";
+		System.out.println("\nSélectionner le mode de chiffrement :");
+		System.out.println("1: ECB");
+		System.out.println("2: CBC");
+		int menu3Int = scanner.nextInt();
+		switch(menu3Int) {
+			case 1 : mode = "ECB";
+				break;
+			case 2 : mode = "CBC";
+				break;
+			default: System.out.println("Merci de saisir 1 ou 2");
+				break;
+		}	
+		
 		System.out.println("\nChiffrement en cours...\n");
 		kinit = utils.hexToBin(kinit);		
 		String[] Ktemp = utils.SplitByNumber(kinit, 64);
@@ -168,14 +184,12 @@ public class crypto {
 		    
 //		Chiffrement (ECB)
 		int counter = 0;
-		String added = "", keyInUse = "", finalResultBin = "";
+		String added = "", keyInUse = "", finalResultBin = "", CBC = "";
 		String[] finalResultTab = new String[utils.Counter(fileSplittedContent)];
 		String[] subWord = new String[N], Temp = new String[N/2];
 		String[][] blocks = new String[N/2][2];	
 		for (String word : fileSplittedContent) {
-//			System.out.println("O : " + word);
-		}
-		for (String word : fileSplittedContent) {
+			if (mode.equals("CBC") && counter != 0) word = utils.XOR(word, CBC);	//CBC uniquement			
 			for (int round = 0; round < 19; round++) {
 				keyInUse = "";
 				for (int k = 0; k < N; k++) {
@@ -207,6 +221,7 @@ public class crypto {
 			word = utils.add2powN(word, keyInUse, size);
 //			System.out.println("F : " + word);
 			finalResultTab[counter] = word;
+			CBC = word;
 			counter++;
 		}
 		for(String part : finalResultTab) {
@@ -216,8 +231,8 @@ public class crypto {
 		BigInteger tempNum = new BigInteger(finalResultBin, 2);
 		String finalResultText = new String(tempNum.toByteArray());
 //		Écriture dans un nouveau fichier
-		utils.CreateFile(fileOriginalInfo[0] + "_ThreeFish" + size, finalResultText);	
-		System.out.println("Chiffrement avec TreeFish " + size + " bits terminé.");
+		utils.CreateFile(fileOriginalInfo[0] + "_ThreeFish_" + size + "_" + mode, mode + "\n\n" + finalResultText);
+		System.out.println("Chiffrement avec TreeFish " + size + " bits en " + mode + " terminé.");
 		return "";
 	}
 	
