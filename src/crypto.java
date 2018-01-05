@@ -1,5 +1,6 @@
 import java.io.BufferedReader;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
@@ -71,8 +72,8 @@ public class crypto {
 									  utils.calcMD5((pwdChar[0] + pwdChar[pwd.length()-1]).getBytes());
 				kinit = finalHash256;
 //				Création du fichier dans lequel on stocke le hash du mdp
-				kFile = fileOriginalInfo[0] + "_key256" ;
-				utils.CreateFile(kFile, finalHash256);
+				kFile = fileOriginalInfo[0] + "_key_256" ;
+//				utils.CreateFile(kFile, finalHash256);
 //				Découpage du contenu du fichier en blocs de 256 bits
 				fileSplittedContent = utils.SplitByNumber(utils.StringToBin(fileOriginalContent), 256);
 				break;
@@ -89,8 +90,8 @@ public class crypto {
 									  utils.calcMD5((pwdChar[pwd.length()-2] + pwdChar[pwd.length()-1]).getBytes());
 				kinit = finalHash512;
 //				Création du fichier dans lequel on stocke le hash du mdp
-				kFile = fileOriginalInfo[0] + "_key512" ;
-				utils.CreateFile(kFile, finalHash512);	
+				kFile = fileOriginalInfo[0] + "_key_512" ;
+//				utils.CreateFile(kFile, finalHash512);	
 //				Découpage du contenu du fichier en blocs de 256 bits
 				fileSplittedContent = utils.SplitByNumber(utils.StringToBin(fileOriginalContent), 512);				
 				break;
@@ -113,8 +114,8 @@ public class crypto {
 				   					   utils.calcMD5((pwdChar[1] + pwdChar[pwd.length()-3] + pwdChar[pwd.length()-2] + pwdChar[pwd.length()-1]).getBytes());				
 				kinit = finalHash1024;
 //				Création du fichier dans lequel on stocke le hash du mdp
-				kFile = fileOriginalInfo[0] + "_key1024" ;
-				utils.CreateFile(kFile, finalHash1024);	
+				kFile = fileOriginalInfo[0] + "_key_1024" ;
+//				utils.CreateFile(kFile, finalHash1024);	
 //				Découpage du contenu du fichier en blocs de 256 bits
 				fileSplittedContent = utils.SplitByNumber(utils.StringToBin(fileOriginalContent), 1024);				
 				break;
@@ -236,12 +237,31 @@ public class crypto {
 		BigInteger tempNum = new BigInteger(finalResultBin, 2);
 		String finalResultText = new String(tempNum.toByteArray());
 //		Écriture dans un nouveau fichier
-		utils.CreateFile(fileOriginalInfo[0] + "_ThreeFish_" + size + "_" + mode, mode + "\n\n" + finalResultText);
+		utils.CreateFile(fileOriginalInfo[0] + "_ThreeFish_" + size + "_" + mode, mode + "\n" + size + "\n\n" + tempNum.toString(2) + "\n\n" + finalResultText);
 		System.out.println("Chiffrement avec TreeFish " + size + " bits en " + mode + " terminé.");
 		return "";
 	}
 	
-	static String DecThreeFish(String fichier) {
+	static String DecThreeFish(String[] fileOriginalInfo) {
+		try{
+//			Lecture du fichier ligne par ligne
+			BufferedReader in = new BufferedReader(new FileReader(fileOriginalInfo[0]+fileOriginalInfo[1]));
+			String str;
+			List<String> list = new ArrayList<String>();
+			while((str = in.readLine()) != null){
+			    list.add(str);
+			}
+
+			String[] stringArr = list.toArray(new String[0]);
+			
+		}		
+		catch (Exception e){
+			System.out.println(e.toString());
+			System.out.println("Fin du programme.");
+			System.exit( 0 );
+		}	
+		
+		
 		System.out.println("Déchiffrement de ThreeFish en cours...");
 		return "";
 	}
