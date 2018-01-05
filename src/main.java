@@ -49,7 +49,7 @@ public class main {
 				newContentFile =  crypto.Hashage("");
 				break;
 			case 4 : 
-				newContentFile =  crypto.DecThreeFish("");
+				newContentFile =  crypto.DecThreeFish(fileInfo);
 				break;
 			case 5 : 
 				newContentFile =  crypto.DecCramerShoup("");
