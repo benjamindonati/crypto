@@ -66,6 +66,9 @@ public class utils {
 //	Casse une chaîne en plusieurs (longueur des sous_chaînes en paramètre)
 	static String[] SplitByNumber(String str, int size) {
 		String[] tab = str.split("(?<=\\G.{"+size+"})");
+		for(String e : tab) {
+			e = e.replace("0", "");
+		}
 		String toAdd = "";
 //		Si la dernière chaîne est plus courte, on comble avec des 0		
 		if (tab[tab.length-1].length() != size) {
@@ -89,16 +92,13 @@ public class utils {
 		      binary.append((val & 128) == 0 ? 0 : 1);
 		      val <<= 1;
 		   }
-//		   binary.append(' ');
 		}
-//		System.out.println(binary);
 		return binary.toString();
 	}
 
 //	Convertit un hexadécimal (passé en String) en binaire
 	static String hexToBin(String s) {
 		String bin = String.format("%128s", new BigInteger(s, 16).toString(2)).replace(" ", "0");
-//		System.out.println(bin);
 		return bin;
 	}
 	
@@ -117,19 +117,29 @@ public class utils {
 	
 //	Addition binaire tronquée au Nème bit (inclus) 
 	static String add2powN (String num1, String num2, int N) {
-//		System.out.println(num1);
-//		System.out.println(String.format("%0$64s", num2));
 		BigInteger number0 = new BigInteger(num1, 2);
 		BigInteger number1 = new BigInteger(num2, 2);
 		String result = String.format("%0$" + N + "s", number0.add(number1).toString(2)).replace(" ", "0");
-//		System.out.println(result);
-//		System.out.println(String.format("%0$64s", result).replace(" ", "0"));
 		if (result.length() > N) {
 			return result.substring(1, N+1);
 		} else {
 			return result;
 		}
 		
+	}
+	
+//	Soustraction binaire tronquée au Nème bit (inclus)
+	static String minus2powN (String num1, String num2, int N) {
+		BigInteger m1 = new BigInteger(num1, 2);
+		BigInteger m2 = new BigInteger(num2, 2);
+//      On détecte si il y a eu un modulo effectué lors du chiffrement...
+        if(m1.compareTo(m2) <  0) {
+//        	On rajoute le bit enlevé lors du modulo du chiffrement
+        	num1 = "1"+num1;
+        	m1 = new BigInteger(num1, 2);
+        }
+		String result = String.format("%0$" + N + "s", m1.subtract(m2).toString(2)).replace("-", "").replace(" ", "0");
+		return result;		
 	}
 	
 //	Convertit un array simple de N éléments en un array de 2 colomnes et N/2 lignes
@@ -150,9 +160,6 @@ public class utils {
 	static String[][] Mix(String[][] blocks, int N) {
 		int shift = 37;
 		for (int i = 0; i < (N/2); i++) {
-//			System.out.println("iMix = " + i);
-//	        System.out.println(blocks[i][0]);
-//	        System.out.println(blocks[i][1]);
 //			Calcul de m'1
 			blocks[i][0] = add2powN(blocks[i][0], blocks[i][1], 64);
 //			Déclage de m2 de 37 bits
@@ -161,11 +168,27 @@ public class utils {
 	        String m2shifted = blocks[i][1].substring( offset, length ) + blocks[i][1].substring( 0, offset );
 //	        Calcul de m'2
 	        blocks[i][1] = XOR(blocks[i][0], m2shifted);
-//	        System.out.println(blocks[i][0]);
-//	        System.out.println(blocks[i][1]);
 		}
-//	System.out.println(Arrays.deepToString(blocks));
-	return blocks;
+		return blocks;
+	}
+	
+	static String[] Unmix(String[][] blocks, int N) {
+		int shift = 37;
+		String[] result = new String [N];
+		for (int i = 0; i < (N/2); i++) {
+			String m2shifted = "";
+//	        Calcul de m2 décalé de 37 bits vers la gauche
+	        m2shifted = XOR(blocks[i][0], blocks[i][1]);
+//			Déclage de m2 de 37 bits
+			int length = blocks[i][1].length();
+	        int offset = ((shift % length) + length) % length;
+	        blocks[i][1] = m2shifted.substring(length-offset, length) + m2shifted.substring( 0, length-offset);
+//			Calcul de m1
+			blocks[i][0] = minus2powN(blocks[i][0], blocks[i][1], 64);
+			result[2*i] = blocks[i][0];
+			result[(2*i)+1] = blocks[i][1];
+		}
+		return result;
 	}
 	
 	
@@ -173,9 +196,6 @@ public class utils {
 //	Chaque mot de 64 bits est divisé en 16 mots de 4 bits
 //	On inversera ensuite l'ordre des bits de chacun de ces mots 
 	static String[] Permute (String[][]blocks, int N) {
-//		String[][] tempTab = blocks;
-//		System.out.println(tempTab[0][0]);
-//		System.out.println(tempTab[0][1]);
 		String[] permute = new String[16];
 		String[] result = new String[N];
 		for (int i = 0; i < (N/2); i++) {
@@ -183,30 +203,55 @@ public class utils {
 			String temp1 = blocks[i][0], temp2 = blocks[i][1];
 			blocks[i][0] = temp2;
 			blocks[i][1] = temp1;
-//			System.out.println("i = " + i);
-//			System.out.println(blocks[i][0]);
-//			System.out.println(blocks[i][1]);			
 			for (int j = 0; j < 2; j++) {
 //				On split le mot de 64 bits en 16 mots de 4 bits
-//				System.out.println("i = " + i + " et j = " + j);
 				permute = SplitByNumber(blocks[i][j], 4);
-//				System.out.println(Arrays.toString(permute));
 				blocks[i][j] = "";
 				for(String bits : permute) {
 //					On inverse l'ordre des bits de chaque mot
 //					Et on recompose le mot de 64 bits
 					blocks[i][j] += StrReverse(bits);
-//					System.out.println("bits = " + bits);
-//					System.out.println("inv = " + blocks[i][j]);
 				}
-//				System.out.println(Arrays.toString(blocks[i]));
 			}			
 			result[2*i] = blocks[i][0];
 			result[(2*i)+1] = blocks[i][1];
-//			System.out.println(Arrays.toString(result));
 		}
 		return result;
 	}
+	
+//	Chaque mot de 64 bits est divisé en 16 mots de 4 bits
+//	On inversera ensuite l'ordre des bits de chacun de ces mots
+//	Chaque bloc de deux mots est inversé (le mot 1 devient le 2ème et vice-versa)
+	static String[][] Unpermute (String[]msg, int N) {
+		String[] small = new String[16], reversed = new String[N];
+		String[] result = new String[N];
+		String[][] blocks = new String[N/2][2];
+		int count = 0;
+		for (String e : msg) {
+//			On split le mot de 64 bits en 16 mots de 4 bits
+			small = SplitByNumber(e, 4);
+//			On inverse l'ordre des bits de chaque mot
+//			Et on recompose le mot de 64 bits
+			reversed[count] = "";
+			for(String bits : small) {
+				reversed[count] += StrReverse(bits);
+			}
+//			On crée des groupes de 2 mots (en prenant soin d'inverser ces 2 mots comme lors du chiffrement
+			if((count%2) == 0) {
+				if (count == 0) {
+					blocks[0][1] = reversed[count];
+				} else {
+					blocks[count/2][1] = reversed[count];
+				}			
+			}
+			else {
+				blocks[(count-1)/2][0] = reversed[count];
+			}
+			count++;
+		}			
+		return blocks;
+	}
+	
 	
 //	Inverse une chaîne
 	static String StrReverse(String word) {
@@ -328,12 +373,14 @@ public class utils {
 //		StringToBin("gs15");
 //		System.out.println(calcMD5("test".getBytes()));
 //		System.out.println(calcMD5("Test".getBytes()));
+//		SplitByNumber("001101000101", 5);
 //		hexToBin(calcMD5("Test".getBytes()));
 //		XOR("0001101111010001000110111101101010101001111111000001101000100010000110111101000100011011110110101010100111111100000110100010001000011011110100010001101111011010101010011111110000011010001000100001101111010001000110111101101010101001111111000001101000100010000110111101000100011011110110101010100111111100000110100010001000011011110100010001101111011010101010011111110000011010001000100001101111010001000110111101101010101001111111000001101000100010", "0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001");
 //		add2pow64("0011011111001001011001011010100011010110110101111011111011000010", "1110");
-		String[][] test = new String[][]{
-			  {"0101010101010000011101001010101010101011001010101010100010101001", "0011011111001001011001011010100011010110110101111011111011000010"},
-			  {"0100101101010101010100101010100101010011101101011010101011111011", "0000110110110110001100000110110000101010100011101001000110001011"}
-			};
+//		minus2powN("0111011010001100001011100001010101000101011101000010011110000000", "1000001011011011111000011101110110011101001111111001100011101011", 64);
+//		String[][] blocks = new String [1][2];
+//		blocks[0][0] = "0111011010001100001011100001010101000101011101000010011110000000";
+//		blocks[0][1] = "1101000101111111001100110110010100011110000010000001110000110011";
+//		Unmix(blocks, 2);
 	}
 }
