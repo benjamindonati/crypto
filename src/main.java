@@ -1,10 +1,25 @@
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 public class main {
-
-	public static void main(String[] args) {
+	public static void main(String[] args) {				
 		Scanner scanner = new Scanner(System.in);
+		
+		// choix de la méthode de chiffrement
+		System.out.println("\nSélectionner l'action souhaitée :");
+		System.out.println("1: Chiffrement symétrique ThreeFish");
+		System.out.println("2: Chiffrement de Cramer-Shoup");
+		System.out.println("3: Vérification d'un Hash");
+		System.out.println("4: Déchiffrement symétrique ThreeFish");
+		System.out.println("5: Déchiffrement Cramer-Shoup");
+		// On déclare la variable qui contient le menu
+		int menuInt = scanner.nextInt();
+		if (menuInt == 3) {
+			crypto.Hashage();
+			System.out.println("\nFin du programme.");
+			return;
+		}
 		
 		// Choix du fichier
 		System.out.println("Ecrivez le nom du fichier avec l'extension !");
@@ -21,18 +36,6 @@ public class main {
 		String fileContent = utils.ReadFile(fichier);
 		//System.out.println(fileContent);
 		
-		// choix de la méthode de chiffrement
-		System.out.println("\nSélectionner l'action souhaitée :");
-		System.out.println("1: Chiffrement symétrique ThreeFish");
-		System.out.println("2: Chiffrement de Cramer-Shoup");
-		System.out.println("3: Hashage d'un message");
-		System.out.println("4: Déchiffrement symétrique ThreeFish");
-		System.out.println("5: Déchiffrement Cramer-Shoup");
-		System.out.println("6: Vérification d'un Hash");
-		
-		// On déclare la variable qui contient le menu
-		int menuInt = scanner.nextInt();
-		
 		System.out.println("Vous avez sélectionner le menu : " + menuInt);
 		
 		// Variable qui contient le résultat de l'opération
@@ -45,17 +48,11 @@ public class main {
 			case 2 : 
 				newContentFile = crypto.CramerShoup("");
 				break;
-			case 3 :
-				newContentFile =  crypto.Hashage("");
-				break;
 			case 4 : 
-				newContentFile =  crypto.DecThreeFish(fileInfo);
+				newContentFile =  crypto.DecThreeFish(fileInfo, fileContent);
 				break;
 			case 5 : 
 				newContentFile =  crypto.DecCramerShoup("");
-				break;
-			case 6 : 
-				newContentFile =  crypto.DecHashage("");
 				break;
 		}
 		
