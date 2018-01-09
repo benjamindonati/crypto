@@ -1,4 +1,5 @@
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.InputStream;
@@ -12,6 +13,11 @@ import sun.misc.FloatingDecimal.BinaryToASCIIConverter;
 public class crypto {
 
 	// Nombres permettant de générer les clés de CramerShoup
+	// J'utilise des noms de variables différentes car je me suis basé en partie sur le livre :
+	// "Cryptographie, principes et mise en oeuvre" de Pierre Barthélemy, Robert Rolland, Pascal Véron
+	//
+	// c = X, d= Y, h= W, z= w, g1 et g2 sont alpha1 et alpha2, hg1 et hg2 sont 
+	//
 	private static BigInteger c,d,h,x1,x2,y1,y2,z;
 
 	// Générateurs du groupe 
@@ -270,13 +276,43 @@ public class crypto {
 		System.out.println("Chiffrement de CramerShoup en cours...");
 
 		// On commence par générer les clés de chiffrement et déchiffrement
-		// On enregistre également les clés dans un fichier
 		GenerateKeysCS();
+		// On enregistre également les clés dans un fichier
+		SavePublicKey();
 
 		// Ensuite on chiffre le fichier avec la clé publique
+			// On commence par convertir le fichier en BigInteger
+			String path = "./files/"+fichier;
+			File file = new File(path);
+			
+			utils.ReadFile(file);
+			System.out.println(fichier.getBytes());
+			BigInteger m = new BigInteger(fichier.getBytes());
+			System.out.println("m= " + m);
+			
+			// On génère les variables pour le chiffrement
+			BigInteger b1,b2,C,H;
+			
+			// On génère b
+			Random rnd = new Random();
+			BigInteger b = BigInteger.valueOf(rnd.nextInt());
+			
+			b1 = g1.modPow(b, primeP);
+			b2 = g2.modPow(b, primeP);
+			
+			C = (h.modPow(b, primeP)).multiply(m);
+			
+			// Fonction de hashage - calcul de H
+			String concat = b1.toString() + b2.toString() + C.toString();
+			byte[] message = concat.getBytes();
+			H = new BigInteger(utils.calcMD5(message));
+			
+			System.out.println("concat = " + concat);
+			System.out.println("H = " + H);
+		
 
 		// On retourne un fichier chiffré
-		return "";
+		return " ";
 	}
 	
 	static String DecCramerShoup(String fichier) {
@@ -423,7 +459,7 @@ public class crypto {
 			pMinus1factorizationExponents[i] = ((Integer)pMinus1FactorMultiplicity.elementAt(i)).intValue();
 		}
 
-		// On créé les générateurs de q et p
+		// On créé les générateurs d'ordre q
 		g1 = projectDown(primel(), primeP);
 		do {
 			System.out.print("\n>> Guessing g2 ");
@@ -452,7 +488,8 @@ public class crypto {
 		// On calcule les variables qui servent à générer les clés
 		
 		Random rnd2 = new Random();
-
+		
+		// On vérifie bien que les nombres sont non nuls
 	    do {  x1 = (new BigInteger(nbits, rnd2)).mod(primeP); }
 	    	while(x1.equals(BigInteger.ZERO));
 	    do {  x2 = (new BigInteger(nbits, rnd2)).mod(primeP); }
@@ -469,11 +506,19 @@ public class crypto {
 
 	    h = g1.modPow(z, primeP);
 	    
-	    System.out.println(c);
+	    System.out.println("c= " + c.bitLength());
 	    System.out.println(d);
 	    System.out.println(h);
 	}	
 
+	static void SavePublicKey() {
+		String fileName = "keysCS";
+		// Générer la chaîne à écrire
+		String publicKey = "PublicKey=(" + primeP + "," + g1 + "," + g1 + "," + c + "," + d + "," + h + ")";
+		// Enregistrement fichier
+		utils.CreateFile(fileName, publicKey, false);
+	}
+	
 	private static void initPrimes(){
 		primePointer = 0;
 	}

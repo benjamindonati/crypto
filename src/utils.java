@@ -61,7 +61,28 @@ public class utils {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	}	
+	}
+	
+	static void CreateFile(String fileName, String fileContent, boolean b) {
+		// Récupération de la date
+		DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd_HH_mm_ss");
+		Date date = new Date();
+		//System.out.println(dateFormat.format(date));
+		
+		//Récupération des données
+		byte[] data = fileContent.getBytes(StandardCharsets.UTF_8);
+		
+		// Création du fichier
+		Path file = Paths.get("files/" + fileName + ".txt");
+		try {
+			Files.write(file, data);
+			System.out.println(fileName + ".txt créé.");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
 
 //	Casse une chaîne en plusieurs (longueur des sous_chaînes en paramètre)
 	static String[] SplitByNumber(String str, int size) {
