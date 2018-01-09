@@ -448,6 +448,7 @@ public class crypto {
 			// On génère les variables pour le chiffrement
 			BigInteger b1,b2,C,H;
 			
+			
 			// On génère b
 			Random rnd = new Random();
 			BigInteger b = BigInteger.valueOf(rnd.nextInt());
