@@ -30,7 +30,7 @@ public class crypto {
 	// c = X, d= Y, h= W, z= w, g1 et g2 sont alpha1 et alpha2, hg1 et hg2 sont 
 	//
 	private static BigInteger c,d,h,x1,x2,y1,y2,z;
-	//comm
+	
 	// Générateurs du groupe 
 	private static BigInteger g1,g2,hg1,hg2;
 
