@@ -4,18 +4,18 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.math.BigInteger;
+import java.io.UnsupportedEncodingException;
+import java.math.*;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Scanner;
+import java.util.*;
 
-import org.apache.commons.io.FileUtils;;
+import com.sun.xml.internal.bind.v2.runtime.RuntimeUtil.ToStringAdapter;
 
 public class utils {
 	
@@ -41,6 +41,7 @@ public class utils {
 		}
 		
 		return fileContent;
+		
 	}
 	
 	static void CreateFile(String fileName, String fileContent) {
@@ -61,7 +62,28 @@ public class utils {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	}	
+	}
+	
+	static void CreateFile(String fileName, String fileContent, boolean b) {
+		// Récupération de la date
+		DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd_HH_mm_ss");
+		Date date = new Date();
+		//System.out.println(dateFormat.format(date));
+		
+		//Récupération des données
+		byte[] data = fileContent.getBytes(StandardCharsets.UTF_8);
+		
+		// Création du fichier
+		Path file = Paths.get("files/" + fileName + ".txt");
+		try {
+			Files.write(file, data);
+			System.out.println(fileName + ".txt créé.");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
 
 //	Casse une chaîne en plusieurs (longueur des sous_chaînes en paramètre)
 	static String[] SplitByNumber(String str, int size) {
@@ -368,62 +390,7 @@ public class utils {
 		return sb.toString();
 	}
 	
-	static void ReadAnyFile () throws IOException { 
-		Scanner scanner = new Scanner(System.in);
-		System.out.println("Ecrivez le nom du fichier avec l'extension !");
-		String fileName = scanner.nextLine();
-		String[] fileInfo = fileName.split("\\.");	//[0] Nom 	[1] Extension
-		File file = new File("files/" + fileName);
-//		On lit le fichier en bytes
-		byte[] bytesArray = new byte[(int) file.length()];
-		FileInputStream fis = new FileInputStream(file);
-		fis.read(bytesArray);
-		fis.close();
-//		On convertit ces bytes en une seule chaîne de binaire
-		int counter = 0;
-		String s = "";
-		for(byte b : bytesArray) {
-			if(counter == 0) {
-				s = new String (("00000000" + Integer.toBinaryString(0xFF & b)).replaceAll(".*(.{8})$", "$1"));
-			} else {
-				s += ("00000000" + Integer.toBinaryString(0xFF & b)).replaceAll(".*(.{8})$", "$1");
-			}
-			
-			counter++;
-		}
-//		On écrit le contenu en binaire dans un fichier
-		CreateFile(fileInfo[0], s);
-//		On transforme ce fichier en fichier original
-		CreateAnyFile(s, fileInfo[0], fileInfo[1]);
-//		System.out.println(s);
-		return ;
-	}
-	
-	static void CreateAnyFile (String fileContentBits, String fileName, String fileExtension) throws IOException {
-//		On coupe la chaîne tous les 8 caractères
-		String[] subContent = SplitByNumber(fileContentBits, 8);
-		int byteSize = fileContentBits.length()/8, count = 0, sInt;
-		byte[] myByteArray = new byte[byteSize];
-//		Pour chaque sous-chaîne créée, on la reconvertit en bytes
-		for(String s: subContent) {
-			if (Integer.parseInt(s, 2) > 127) {
-				myByteArray[count] = (byte)(Integer.parseInt(s, 2)-256);;
-			} else {
-				myByteArray[count] = Byte.parseByte(s, 2);
-			}
-			count++;
-		}		
-		DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd_HH_mm_ss");
-		Date date = new Date();		
-		String finalFile = fileName + "_" + dateFormat.format(date) + "." + fileExtension;
-		File finalPath = new File("files/" + finalFile);
-//		On écrit le tout dans un fichier qui devrait être lisible
-		FileUtils.writeByteArrayToFile(finalPath, myByteArray);
-		System.out.println(finalFile + " créé.");
-		return ;
-	}
-	
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) {
 //		System.out.println(Arrays.toString(SplitByNumber("GS15UTT", 4)));
 //		StringToBin("gs15");
 //		System.out.println(calcMD5("test".getBytes()));
@@ -437,7 +404,5 @@ public class utils {
 //		blocks[0][0] = "0111011010001100001011100001010101000101011101000010011110000000";
 //		blocks[0][1] = "1101000101111111001100110110010100011110000010000001110000110011";
 //		Unmix(blocks, 2);
-//		ReadAnyFile();
-		System.out.println(ReadFile(new File("files/fichier.txt")));
 	}
 }
