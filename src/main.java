@@ -6,21 +6,6 @@ public class main {
 	public static void main(String[] args) {				
 		Scanner scanner = new Scanner(System.in);
 		
-		// Choix du fichier
-		System.out.println("Ecrivez le nom du fichier avec l'extension !");
-		String fileName = scanner.nextLine();
-		String[] fileInfo = fileName.split("\\.");	//[0] Nom 	[1] Extension
-		//System.out.println(Arrays.toString(fileInfo));
-		
-		
-		// On récupère le fichier
-		File fichier = new File("files/" + fileName);
-		
-		
-		// On récupère le contenu du fichier
-		String fileContent = utils.ReadFile(fichier);
-				//System.out.println(fileContent);
-		
 		// choix de la méthode de chiffrement
 		System.out.println("\nSélectionner l'action souhaitée :");
 		System.out.println("1: Chiffrement symétrique ThreeFish");
@@ -34,9 +19,27 @@ public class main {
 			crypto.Hashage();
 			System.out.println("\nFin du programme.");
 			return;
-		}		
+		}
 		
-		System.out.println("Vous avez sélectionné le menu : " + menuInt);
+		Scanner scanner2 = new Scanner(System.in);
+		// Choix du fichier
+		System.out.println("Ecrivez le nom du fichier avec l'extension !");
+		String fileName = scanner2.nextLine();
+		String[] fileInfo = fileName.split("\\.");	//[0] Nom 	[1] Extension
+		//System.out.println(Arrays.toString(fileInfo));
+		
+		
+		// On récupère le fichier
+		System.out.println("files/" + fileName);
+		File fichier = new File("files/" + fileName);
+		
+		
+		
+		// On récupère le contenu du fichier
+		String fileContent = utils.ReadFile(fichier);
+		//System.out.println(fileContent);
+		
+		System.out.println("Vous avez sélectionner le menu : " + menuInt);
 		
 		// Variable qui contient le résultat de l'opération
 		String newContentFile = "";
@@ -46,7 +49,7 @@ public class main {
 				newContentFile = crypto.ThreeFish(fileInfo, fileContent);
 				break;
 			case 2 : 
-				newContentFile = crypto.CramerShoup("");
+				newContentFile = crypto.CramerShoup(fileContent);
 				break;
 			case 4 : 
 				newContentFile =  crypto.DecThreeFish(fileInfo, fileContent);
