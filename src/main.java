@@ -21,10 +21,9 @@ public class main {
 			return;
 		}
 		
-		Scanner scanner2 = new Scanner(System.in);
 		// Choix du fichier
 		System.out.println("Ecrivez le nom du fichier avec l'extension !");
-		String fileName = scanner2.nextLine();
+		String fileName = scanner.nextLine();
 		String[] fileInfo = fileName.split("\\.");	//[0] Nom 	[1] Extension
 		//System.out.println(Arrays.toString(fileInfo));
 		
