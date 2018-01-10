@@ -466,7 +466,6 @@ public class crypto {
 			System.out.println("Z = " + z);
 			BigInteger mess = C.divide(b1.modPow(z, primeP));
 			
-			
 			System.out.println("M= "+ new String(mess.toByteArray()));
 			System.out.println("m= "+ contenuFichier);
 			
