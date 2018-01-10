@@ -37,7 +37,6 @@ public class crypto {
 	// Facteurs premiers de (p-1)
 	private static BigInteger[] pMinus1factorization;
 
-
 	// Exposants des facteurs premiers de (p-1)
 	private static int[] pMinus1factorizationExponents;
 
