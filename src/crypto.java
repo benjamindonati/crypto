@@ -23,27 +23,17 @@ import sun.misc.FloatingDecimal.BinaryToASCIIConverter;
 
 public class crypto {
 
-	// Nombres permettant de générer les clés de CramerShoup
-	// J'utilise des noms de variables différentes car je me suis basé en partie sur le livre :
-	// "Cryptographie, principes et mise en oeuvre" de Pierre Barthélemy, Robert Rolland, Pascal Véron
-	//
-	// c = X, d= Y, h= W, z= w, g1 et g2 sont alpha1 et alpha2, hg1 et hg2 sont 
-	//
-	private static BigInteger c,d,h,x1,x2,y1,y2,z;
-
-	// Générateurs du groupe 
-	private static BigInteger g1,g2,hg1,hg2;
-
-	// Facteurs premiers de (p-1)
+	/**
+	 * Facteurs premiers de (p-1)
+	 */
 	private static BigInteger[] pMinus1factorization;
 
 
-	// Exposants des facteurs premiers de (p-1)
+	/**
+	 * Exposants des facteurs premiers de (p-1)
+	 */
 	private static int[] pMinus1factorizationExponents;
 
-	// Variables de gestion des nb premiers
-	private static BigInteger primeP;
-	private static int nbits = -1;
 	static int primePointer;
 	static Vector primes;
 	static long[] initialPrimes = {2, 3, 5, 7, 11, 13, 17, 19, 23};
@@ -427,50 +417,17 @@ public class crypto {
 		return "";
 	}
 	
-	static String CramerShoup(String contenuFichier) {
+	static String CramerShoup(String fichier) {
 		System.out.println("Chiffrement de CramerShoup en cours...");
-
-		// On commence par générer les clés de chiffrement et déchiffrement
-		GenerateKeysCS();
-		// On enregistre également les clés dans un fichier
-		SavePublicKey();
-		System.out.println("Z = "+ z);
-		// Ensuite on chiffre le fichier avec la clé publique
-			// On commence par convertir le fichier en BigInteger
-			BigInteger m = new BigInteger(contenuFichier.getBytes());
-			System.out.println("m= " + m);
-			
-			// On génère les variables pour le chiffrement
-			BigInteger b1,b2,C,H;
-			
-			
-			// On génère b
-			Random rnd = new Random();
-			BigInteger b = BigInteger.valueOf(rnd.nextInt());
-			
-			b1 = g1.modPow(b, primeP);
-			b2 = g2.modPow(b, primeP);
-			
-			
-			C = (h.modPow(b, primeP)).multiply(m);
-			
-			// Fonction de hashage - calcul de H
-			String concat = b1.toString() + b2.toString() + C.toString();
-			byte[] message = concat.getBytes();
-			H = new BigInteger(utils.calcMD5(message).getBytes());
-			
-			System.out.println("concat = " + concat);
-			System.out.println("H = " + H);
 		
-			
-			System.out.println("Z = " + z);
-			BigInteger mess = C.divide(b1.modPow(z, primeP));
-			
-			System.out.println("M= "+ new String(mess.toByteArray()));
-			System.out.println("m= "+ contenuFichier);
-			
+		// On commence par générer les clés de chiffrement et déchiffrement
+		// On enregistre également les clés dans un fichier
+		GenerateKeysCS();
+		
+		// Ensuite on chiffre le fichier avec la clé publique
+		
 		// On retourne un fichier chiffré
-		return " ";
+		return "";
 	}
 	
 	static String DecCramerShoup(String fichier) {
@@ -498,7 +455,7 @@ public class crypto {
 		
 		return ;
 	}
-
+	
 	// Cette méthode génère les clés pour CramerShoup
 	static void GenerateKeysCS() {
 
@@ -508,7 +465,7 @@ public class crypto {
 		Random rnd = new Random();
 		// 1024 étant la longueur et 100 l'indice de confiance
 		BigInteger primeQ = new BigInteger(1024, 100, rnd);
-		// On vérifie qu'il soit premier
+
 		while(
 				(primeQ.mod(BigInteger.valueOf(3))).equals(BigInteger.ZERO) ||
 				(primeQ.mod(BigInteger.valueOf(5))).equals(BigInteger.ZERO) ||
@@ -581,9 +538,9 @@ public class crypto {
 		System.out.println("q = " + primeQ.toString());
 		System.out.println("p = " + primeQ.bitLength());
 
-		nbits = numberP.bitLength();
+		int nbits = numberP.bitLength();
 
-		primeP = numberP;
+		BigInteger primeP = numberP;
 
 
 		// On factorise p-1 pour vérifier qu'il n'est pas friable
@@ -627,68 +584,8 @@ public class crypto {
 			pMinus1factorization[i] = (BigInteger)pMinus1Factors.elementAt(i);
 			pMinus1factorizationExponents[i] = ((Integer)pMinus1FactorMultiplicity.elementAt(i)).intValue();
 		}
-
-		// On créé les générateurs d'ordre q
-		g1 = projectDown(primel(), primeP);
-		do {
-			System.out.print("\n>> Guessing g2 ");
-			g2 = projectDown(primel(), primeP);
-		} while (g2.equals(g1));
-		// On s'assure que les générateurs soient bien différents
-		do {
-			System.out.print("\n>> Guessing hg1 ");
-			hg1 = projectDown(primel(), primeP);
-		} while (hg1.equals(g1) || hg1.equals(g2));
-		do {
-			System.out.print("\n>> Guessing hg2 ");
-			hg2 = projectDown(primel(), primeP);
-		} while (hg2.equals(g1) || hg2.equals(g2) || hg2.equals(hg1) );
-		
-		System.out.println("-----------------------------------------------------------");
-		System.out.println(g1);
-		System.out.println(g1.bitLength());
-		System.out.println(g2);
-		System.out.println(g2.bitLength());
-		System.out.println(hg1);
-		System.out.println(hg1.bitLength());
-		System.out.println(hg2);
-		System.out.println(hg2.bitLength());
-		
-		// On calcule les variables qui servent à générer les clés
-		
-		Random rnd2 = new Random();
-		
-		// On vérifie bien que les nombres sont non nuls
-	    do {  x1 = (new BigInteger(nbits, rnd2)).mod(primeP); }
-	    	while(x1.equals(BigInteger.ZERO));
-	    do {  x2 = (new BigInteger(nbits, rnd2)).mod(primeP); }
-	    	while(x2.equals(BigInteger.ZERO));
-	    do {  y1 = (new BigInteger(nbits, rnd2)).mod(primeP); }
-	    	while(y1.equals(BigInteger.ZERO));
-	    do {  y2 = (new BigInteger(nbits, rnd2)).mod(primeP); }
-	    	while(y2.equals(BigInteger.ZERO));
-	    do {  z  = (new BigInteger(nbits, rnd2)).mod(primeP); }
-	    	while(z.equals(BigInteger.ZERO));
-	    
-		c = ((g1.modPow(x1,primeP)).multiply(g2.modPow(x2,primeP))).mod(primeP);
-	    d = ((g1.modPow(y1,primeP)).multiply(g2.modPow(y2,primeP))).mod(primeP);
-
-	    h = g1.modPow(z, primeP);
-	    
-	    System.out.println("c= " + c.bitLength());
-	    System.out.println(d);
-	    System.out.println(h);
-	    System.out.println("Z = " +z);
 	}	
 
-	static void SavePublicKey() {
-		String fileName = "keysCS";
-		// Générer la chaîne à écrire
-		String publicKey = "PublicKey=(" + primeP + "," + g1 + "," + g1 + "," + c + "," + d + "," + h + ")";
-		// Enregistrement fichier
-		utils.CreateFile(fileName, publicKey, false);
-	}
-	
 	private static void initPrimes(){
 		primePointer = 0;
 	}
@@ -715,84 +612,5 @@ public class crypto {
 
 			return newPrime;
 		}
-	}
-
-	// Calcule l'ordre d'un élément
-	private static BigInteger ordInG(BigInteger x){
-
-		BigInteger ord = primeP.subtract(BigInteger.ONE);
-		int j = 0;
-
-		for(int i = 0; i < pMinus1factorization.length; i++){
-			System.out.print("*");
-			for(j = 1; j < pMinus1factorizationExponents[i]; j++){
-				if(x.modPow((ord.divide(pMinus1factorization[i])),primeP).equals(BigInteger.ONE)
-						){
-					System.out.print("@");
-					ord = ord.divide(pMinus1factorization[i]);
-				}
-			}
-			if(x.modPow(ord.divide(pMinus1factorization[i]),primeP).equals(BigInteger.ONE)){
-				ord = ord.divide(pMinus1factorization[i]);
-			}
-		}
-		return ord;
-	}
-	private static BigInteger primel(){
-
-		try {
-
-			BigInteger p1 = primeP.subtract(BigInteger.ONE);
-			BigInteger p3 = primeP.subtract(BigInteger.valueOf(3));
-			BigInteger prim =
-					((new BigInteger(nbits, new Random())).mod(p3)).add(BigInteger.valueOf(2));
-			BigInteger ord = ordInG(prim);
-			BigInteger y;
-			BigInteger ordy;
-			BigInteger c;
-			BigInteger s;
-			BigInteger ss;
-
-
-			System.out.print("--ok--");
-			while(-1 == ord.compareTo(primeP.subtract(BigInteger.ONE))){
-				y = ((new BigInteger(nbits, new Random())).mod(p3)).add(BigInteger.valueOf(2));
-				ordy = ordInG(y);
-				c = ordy.gcd(ord);
-				s = ord.mod(ordy.divide(c));
-
-				if(ordy.equals(p1)){
-					prim = y;
-					ord = ordy;
-				}
-				else {
-
-					if ( (-1 == c.compareTo(ordy)) &&
-							(-1 == (BigInteger.ZERO).compareTo(s))
-							){
-						ss = ordy.mod(ord.divide(c));
-						ss = ss.divide(ss.gcd(s));
-						prim = prim.modPow(ord.divide(s),
-								primeP);
-						prim = (prim.multiply(y.modPow(ordy.divide(ss),
-								primeP))
-								).mod(primeP);
-					}
-				}
-			}
-			return prim;
-		}
-		catch (java.lang.ArithmeticException e){
-			// Il peut y avoir des divisions par 0, il faut donc refaire le calcul
-			return primel();
-		}
-	}
-
-	// On choisit un générateur du bas
-	private static BigInteger projectDown(BigInteger gen, BigInteger p){
-		if(-1 == (p.divide(BigInteger.valueOf(2))).compareTo(gen))
-			return p.subtract(gen);
-		else
-			return gen;
 	}
 }
