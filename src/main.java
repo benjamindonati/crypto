@@ -21,15 +21,18 @@ public class main {
 			return;
 		}
 		
+		Scanner scanner2 = new Scanner(System.in);
 		// Choix du fichier
 		System.out.println("Ecrivez le nom du fichier avec l'extension !");
-		String fileName = scanner.nextLine();
+		String fileName = scanner2.nextLine();
 		String[] fileInfo = fileName.split("\\.");	//[0] Nom 	[1] Extension
 		//System.out.println(Arrays.toString(fileInfo));
 		
 		
 		// On récupère le fichier
+		System.out.println("files/" + fileName);
 		File fichier = new File("files/" + fileName);
+		
 		
 		
 		// On récupère le contenu du fichier
@@ -46,7 +49,7 @@ public class main {
 				newContentFile = crypto.ThreeFish(fileInfo, fileContent);
 				break;
 			case 2 : 
-				newContentFile = crypto.CramerShoup("");
+				newContentFile = crypto.CramerShoup(fileContent);
 				break;
 			case 4 : 
 				newContentFile =  crypto.DecThreeFish(fileInfo, fileContent);

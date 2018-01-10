@@ -427,22 +427,17 @@ public class crypto {
 		return "";
 	}
 	
-	static String CramerShoup(String fichier) {
+	static String CramerShoup(String contenuFichier) {
 		System.out.println("Chiffrement de CramerShoup en cours...");
 
 		// On commence par générer les clés de chiffrement et déchiffrement
 		GenerateKeysCS();
 		// On enregistre également les clés dans un fichier
 		SavePublicKey();
-
+		System.out.println("Z = "+ z);
 		// Ensuite on chiffre le fichier avec la clé publique
 			// On commence par convertir le fichier en BigInteger
-			String path = "./files/"+fichier;
-			File file = new File(path);
-			
-			utils.ReadFile(file);
-			System.out.println(fichier.getBytes());
-			BigInteger m = new BigInteger(fichier.getBytes());
+			BigInteger m = new BigInteger(contenuFichier.getBytes());
 			System.out.println("m= " + m);
 			
 			// On génère les variables pour le chiffrement
@@ -456,17 +451,25 @@ public class crypto {
 			b1 = g1.modPow(b, primeP);
 			b2 = g2.modPow(b, primeP);
 			
+			
 			C = (h.modPow(b, primeP)).multiply(m);
 			
 			// Fonction de hashage - calcul de H
 			String concat = b1.toString() + b2.toString() + C.toString();
 			byte[] message = concat.getBytes();
-			H = new BigInteger(utils.calcMD5(message));
+			H = new BigInteger(utils.calcMD5(message).getBytes());
 			
 			System.out.println("concat = " + concat);
 			System.out.println("H = " + H);
 		
-
+			
+			System.out.println("Z = " + z);
+			BigInteger mess = C.divide(b1.modPow(z, primeP));
+			
+			
+			System.out.println("M= "+ new String(mess.toByteArray()));
+			System.out.println("m= "+ contenuFichier);
+			
 		// On retourne un fichier chiffré
 		return " ";
 	}
@@ -676,6 +679,7 @@ public class crypto {
 	    System.out.println("c= " + c.bitLength());
 	    System.out.println(d);
 	    System.out.println(h);
+	    System.out.println("Z = " +z);
 	}	
 
 	static void SavePublicKey() {
