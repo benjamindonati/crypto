@@ -55,7 +55,7 @@ public class crypto {
 	static String ThreeFish(String [] fileOriginalInfo, String fileOriginalContent) {
 		Scanner scanner = new Scanner(System.in);
 //		size : taille des blocs ; N : nombre de mots de 64 bits
-		int size = 256, N = 4, pwdLength = 0;
+		int size = 256, N = 4, pwdLength = 0, initSize = 0;
 		String kinit = "", t2 = "", kFile = "", kn1 = "0000000000000000000000000000000000000000000000000000000000000000";
 		String[] fileSplittedContent = {};
 		String c = "0001101111010001000110111101101010101001111111000001101000100010";
@@ -92,7 +92,8 @@ public class crypto {
 									  utils.calcMD5((pwdChar[0] + pwdChar[pwd.length()-1]).getBytes());
 				kinit = finalHash256;
 //				Découpage du contenu du fichier en blocs de 256 bits
-				fileSplittedContent = utils.SplitByNumber(utils.StringToBin(fileOriginalContent), 256);
+//				fileSplittedContent = utils.SplitByNumber(utils.StringToBin(fileOriginalContent), 256);
+				fileSplittedContent = utils.SplitByNumber(fileOriginalContent, 256);
 				break;
 			case 2 : 
 				size = 512;	N = 8;
@@ -107,8 +108,9 @@ public class crypto {
 									  utils.calcMD5((pwdChar[pwd.length()-2] + pwdChar[pwd.length()-1]).getBytes());
 				kinit = finalHash512;
 //				Création du fichier dans lequel on stocke le hash du mdp
-//				Découpage du contenu du fichier en blocs de 256 bits
-				fileSplittedContent = utils.SplitByNumber(utils.StringToBin(fileOriginalContent), 512);				
+//				Découpage du contenu du fichier en blocs de 512 bits
+//				fileSplittedContent = utils.SplitByNumber(utils.StringToBin(fileOriginalContent), 512);
+				fileSplittedContent = utils.SplitByNumber(fileOriginalContent, 512);			
 				break;
 			case 3 : 				
 				size = 1024; N = 16;
@@ -128,13 +130,16 @@ public class crypto {
 									   utils.calcMD5((pwdChar[0] + pwdChar[1] + pwdChar[2]).getBytes()) +
 				   					   utils.calcMD5((pwdChar[1] + pwdChar[pwd.length()-3] + pwdChar[pwd.length()-2] + pwdChar[pwd.length()-1]).getBytes());				
 				kinit = finalHash1024;
-//				Découpage du contenu du fichier en blocs de 256 bits
-				fileSplittedContent = utils.SplitByNumber(utils.StringToBin(fileOriginalContent), 1024);				
+//				Découpage du contenu du fichier en blocs de 1024 bits
+//				fileSplittedContent = utils.SplitByNumber(utils.StringToBin(fileOriginalContent), 1024);
+				fileSplittedContent = utils.SplitByNumber(fileOriginalContent, 1024);				
 				break;
 			default:
 				System.out.println("Merci de saisir 256, 512 ou 1024");
 				break;
-		}	
+		}
+		initSize = Integer.parseInt(fileSplittedContent[utils.Counter(fileSplittedContent)-1]);	
+		fileSplittedContent = utils.withoutLast(fileSplittedContent);
 		
 //		Choix du mode de chiffrement (ECB ou CBC)
 		String mode = "";
@@ -154,6 +159,7 @@ public class crypto {
 		System.out.println("\nChiffrement en cours...\n");
 		kinit = utils.hexToBin(kinit);		
 		String[] Ktemp = utils.SplitByNumber(kinit, 64);
+		Ktemp = utils.withoutLast(Ktemp);
 		
 //		Ajout de la constante C
 		for (String e : Ktemp){
@@ -163,6 +169,7 @@ public class crypto {
 		
 		kinit += kn1;
 		String[] K = utils.SplitByNumber(kinit, 64);
+		K = utils.withoutLast(K);
 		
 //		Tweaks
 		String[] tweaks = {K[0], K[1], utils.XOR(K[0], K[1])};
@@ -203,6 +210,7 @@ public class crypto {
 				}
 				added = utils.add2powN(word, keyInUse, size);
 				subWord = utils.SplitByNumber(added, 64);
+				subWord = utils.withoutLast(subWord);
 				for (int count = 0; count < 4; count++) {
 					blocks = utils.Divide2(subWord, N);
 					blocks = utils.Mix(blocks, N);
@@ -226,6 +234,7 @@ public class crypto {
 		for(String part : finalResultTab) {
 			finalResultBin += part;
 		}
+		
 //		On reforme le résultat en caractères ascii
 		String finalResultText = "";
 		for(int l = 0; l <= finalResultBin.length() - 8; l+=8)
@@ -234,22 +243,22 @@ public class crypto {
 		    finalResultText += (char) k;
 		}
 //		Écriture dans un nouveau fichier
-		utils.CreateFile(fileOriginalInfo[0] + "_ThreeFish_" + size + "_" + mode, mode + "\n" + size + "\n\n" + finalResultBin + "\n\n" + finalResultText);
+		utils.CreateFile(fileOriginalInfo[0] + "_ThreeFish_" + size + "_" + mode, initSize + "\n" + fileOriginalInfo[1] + "\n" + mode + "\n" + size + "\n\n" + finalResultBin + "\n\n" + finalResultText);
 		System.out.println("Chiffrement avec TreeFish " + size + " bits en " + mode + " terminé.");
 		return "";
 	}
 	
-	static String DecThreeFish(String[] fileOriginalInfo, String fileOriginalContent) {
+	static String DecThreeFish(String[] fileOriginalInfo, String fileOriginalContent) throws IOException {
 		Scanner scanner = new Scanner(System.in);
 //		size : taille des blocs ; N : nombre de mots de 64 bits
-		int size = 256, N = 4, pwdLength = 0;
-		String mode = "", binCryptMsg = "",pwd = "", kinit = "", kn1 = "0000000000000000000000000000000000000000000000000000000000000000";
+		int size = 256, N = 4, pwdLength = 0, initSize  =0;
+		String fileExtension = ".", mode = "", binCryptMsg = "",pwd = "", kinit = "", kn1 = "0000000000000000000000000000000000000000000000000000000000000000";
 		String[] fileSplittedContent = {};
 		String c = "0001101111010001000110111101101010101001111111000001101000100010";
 		
 //		On récupère les infos présentes dans le fichier du chiffré
 		try (Stream<String> lines = Files.lines(Paths.get("files/" + fileOriginalInfo[0] + "." + fileOriginalInfo[1]))) {
-			mode = lines.skip(0).findFirst().get();
+			initSize = Integer.parseInt(lines.skip(0).findFirst().get());
 		}		
 		catch (Exception e){
 			System.out.println(e.toString());
@@ -257,7 +266,7 @@ public class crypto {
 			System.exit( 0 );
 		}
 		try (Stream<String> lines = Files.lines(Paths.get("files/" + fileOriginalInfo[0] + "." + fileOriginalInfo[1]))) {
-			size = Integer.valueOf(lines.skip(1).findFirst().get());
+			fileExtension += lines.skip(1).findFirst().get();
 		}		
 		catch (Exception e){
 			System.out.println(e.toString());
@@ -265,7 +274,23 @@ public class crypto {
 			System.exit( 0 );
 		}
 		try (Stream<String> lines = Files.lines(Paths.get("files/" + fileOriginalInfo[0] + "." + fileOriginalInfo[1]))) {
-			binCryptMsg = lines.skip(3).findFirst().get();
+			mode = lines.skip(2).findFirst().get();
+		}		
+		catch (Exception e){
+			System.out.println(e.toString());
+			System.out.println("Fin du programme.");
+			System.exit( 0 );
+		}
+		try (Stream<String> lines = Files.lines(Paths.get("files/" + fileOriginalInfo[0] + "." + fileOriginalInfo[1]))) {
+			size = Integer.valueOf(lines.skip(3).findFirst().get());
+		}		
+		catch (Exception e){
+			System.out.println(e.toString());
+			System.out.println("Fin du programme.");
+			System.exit( 0 );
+		}
+		try (Stream<String> lines = Files.lines(Paths.get("files/" + fileOriginalInfo[0] + "." + fileOriginalInfo[1]))) {
+			binCryptMsg = lines.skip(5).findFirst().get();
 		}		
 		catch (Exception e){
 			System.out.println(e.toString());
@@ -336,8 +361,10 @@ public class crypto {
 				break;
 		}	
 		System.out.println("\nDéchiffrement en cours...\n");
+		fileSplittedContent = utils.withoutLast(fileSplittedContent);
 		kinit = utils.hexToBin(kinit);		
 		String[] Ktemp = utils.SplitByNumber(kinit, 64);
+		Ktemp = utils.withoutLast(Ktemp);
 		
 //		Ajout de la constante C
 		for (String e : Ktemp){
@@ -347,6 +374,7 @@ public class crypto {
 		
 		kinit += kn1;
 		String[] K = utils.SplitByNumber(kinit, 64);
+		K = utils.withoutLast(K);
 		
 //		Tweaks
 		String[] tweaks = {K[0], K[1], utils.XOR(K[0], K[1])};
@@ -390,6 +418,7 @@ public class crypto {
 				}
 				added = utils.minus2powN(word, keyInUse, size);
 				subWord = utils.SplitByNumber(added, 64);
+				subWord = utils.withoutLast(subWord);
 				for (int count = 0; count < 4; count++) {
 					blocks = utils.Unpermute(subWord, N);
 					subWord = utils.Unmix(blocks, N);
@@ -416,17 +445,21 @@ public class crypto {
 		for(String part : finalResultTab) {
 			finalResultBin += part;
 		}
+		finalResultBin = finalResultBin.substring(0,initSize);
+		String finalFileName = fileOriginalInfo[0] + "_ORIGINAL" + fileExtension;
+		utils.CreateAnyFile(finalFileName, finalResultBin);
+		
 //		On reforme le résultat en caractères ascii
-		String finalResultText = "";
-		for(int l = 0; l <= finalResultBin.length() - 8; l+=8)
-		{
-		    int k = Integer.parseInt(finalResultBin.substring(l, l+8), 2);
-		    finalResultText += (char) k;
-		}
-//		Suppression des symboles non souhaités
-		finalResultText = finalResultText.replace("œ", "oe").replaceAll("\n", "").replaceAll("\0", "");  
-//		Écriture dans un nouveau fichier
-		utils.CreateFile(fileOriginalInfo[0] + "_ORIGINAL_", finalResultText);
+//		String finalResultText = "";
+//		for(int l = 0; l <= finalResultBin.length() - 8; l+=8)
+//		{
+//		    int k = Integer.parseInt(finalResultBin.substring(l, l+8), 2);
+//		    finalResultText += (char) k;
+//		}
+////		Suppression des symboles non souhaités
+//		finalResultText = finalResultText.replace("œ", "oe").replaceAll("\n", "").replaceAll("\0", "");  
+////		Écriture dans un nouveau fichier
+//		utils.CreateFile(fileOriginalInfo[0] + "_ORIGINAL_", finalResultText);
 		System.out.println("Déchiffrement avec TreeFish " + size + " bits en " + mode + " terminé.");
 		return "";
 	}

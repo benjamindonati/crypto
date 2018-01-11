@@ -16,6 +16,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import com.sun.xml.internal.bind.v2.runtime.RuntimeUtil.ToStringAdapter;
+import org.apache.commons.io.FileUtils;
 
 public class utils {
 	
@@ -27,11 +28,11 @@ public class utils {
 			InputStreamReader ipsr=new InputStreamReader(ips);
 			BufferedReader br=new BufferedReader(ipsr);
 			String ligne;
-			//System.out.println("Contenu :");
-			while ((ligne=br.readLine())!=null){
-				//System.out.println(ligne);
-				fileContent+=ligne+"\n";
-			}
+//			System.out.println("Contenu :");
+//			while ((ligne=br.readLine())!=null){
+//				System.out.println(ligne);
+//				fileContent+=ligne+"\n";
+//			}
 			br.close();
 		}		
 		catch (Exception e){
@@ -84,10 +85,66 @@ public class utils {
 		}
 		
 	}
+	
+	static String ReadAnyFile (String fileName) throws IOException {
+		String[] fileInfo = fileName.split("\\.");	//[0] Nom 	[1] Extension
+		File file = new File("files/" + fileName);
+//		On lit le fichier en bytes
+		byte[] bytesArray = new byte[(int) file.length()];
+		FileInputStream fis = new FileInputStream(file);
+		fis.read(bytesArray);
+		fis.close();
+//		On convertit ces bytes en une seule chaîne de binaire
+		int counter = 0;
+		String s = "";
+		for(byte b : bytesArray) {
+			if(counter == 0) {
+				s = new String (("00000000" + Integer.toBinaryString(0xFF & b)).replaceAll(".*(.{8})$", "$1"));
+			} else {
+				s += ("00000000" + Integer.toBinaryString(0xFF & b)).replaceAll(".*(.{8})$", "$1");
+			}
+			
+			counter++;
+		}
+//		On écrit le contenu en binaire dans un fichier
+//		CreateFile(fileInfo[0], s);
+//		On transforme ce fichier en fichier original
+//		CreateAnyFile(s, fileInfo[0], fileInfo[1]);
+//		System.out.println(s);
+		return s;
+	}
+	
+	static void CreateAnyFile (String fileOriginalName, String fileContentBits) throws IOException {
+		String fileName = fileOriginalName.split("\\.")[0]; 
+		String fileExtension = fileOriginalName.split("\\.")[1];
+//		On coupe la chaîne tous les 8 caractères
+		String[] subContent = SplitByNumber(fileContentBits, 8);
+		subContent = withoutLast(subContent);
+		int byteSize = fileContentBits.length()/8, count = 0, sInt;
+		byte[] myByteArray = new byte[byteSize];
+//		Pour chaque sous-chaîne créée, on la reconvertit en bytes
+		for(String s: subContent) {
+			if (Integer.parseInt(s, 2) > 127) {
+				myByteArray[count] = (byte)(Integer.parseInt(s, 2)-256);;
+			} else {
+				myByteArray[count] = Byte.parseByte(s, 2);
+			}
+			count++;
+		}			
+		String finalFile = fileName + "." + fileExtension;
+		File finalPath = new File("files/" + finalFile);
+//		On écrit le tout dans un fichier qui devrait être lisible
+		FileUtils.writeByteArrayToFile(finalPath, myByteArray);
+		System.out.println(finalFile + " créé.");
+		return ;
+	}
 
 //	Casse une chaîne en plusieurs (longueur des sous_chaînes en paramètre)
 	static String[] SplitByNumber(String str, int size) {
 		String[] tab = str.split("(?<=\\G.{"+size+"})");
+		int tabSize = Counter(tab), strSize = str.length(), count = 0;
+//		System.out.println(tabSize);
+		String[] newTab = new String[tabSize+1];
 		for(String e : tab) {
 			e = e.replace("0", "");
 		}
@@ -99,7 +156,23 @@ public class utils {
 			}
 		}
 		tab[tab.length-1] += toAdd;
-		return tab;
+		for(String t : tab) {
+			newTab[count] = t;
+			count++;
+		}
+		newTab[tabSize] = Integer.toString(strSize);
+		return newTab;
+	}
+	
+//	Renvoie un array dépourvu de son dernier élément
+	static String[] withoutLast(String[] tab) {
+		int counter = 0;
+		String[] newTab = new String[Counter(tab)-1];
+		for(String t : tab) {
+			if(counter < (Counter(tab)-1)) newTab[counter] = t;
+			counter++;
+		}
+		return newTab;
 	}
 	
 //	Convertit une chaîne en binaire (table ascii)
@@ -228,6 +301,7 @@ public class utils {
 			for (int j = 0; j < 2; j++) {
 //				On split le mot de 64 bits en 16 mots de 4 bits
 				permute = SplitByNumber(blocks[i][j], 4);
+				permute = withoutLast(permute);
 				blocks[i][j] = "";
 				for(String bits : permute) {
 //					On inverse l'ordre des bits de chaque mot
@@ -252,6 +326,7 @@ public class utils {
 		for (String e : msg) {
 //			On split le mot de 64 bits en 16 mots de 4 bits
 			small = SplitByNumber(e, 4);
+			small = withoutLast(small);
 //			On inverse l'ordre des bits de chaque mot
 //			Et on recompose le mot de 64 bits
 			reversed[count] = "";
@@ -404,5 +479,7 @@ public class utils {
 //		blocks[0][0] = "0111011010001100001011100001010101000101011101000010011110000000";
 //		blocks[0][1] = "1101000101111111001100110110010100011110000010000001110000110011";
 //		Unmix(blocks, 2);
+//		String testing = "10010120153";
+//		System.out.println(Arrays.toString(SplitByNumber(testing, 3)));		
 	}
 }
