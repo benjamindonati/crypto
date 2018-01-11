@@ -3,19 +3,20 @@ import java.io.IOException;
 import java.util.*;
 
 public class main {
-	public static void main(String[] args) {				
-		Scanner scanner = new Scanner(System.in);
+	public static void main(String[] args) throws IOException {				
+		
 		
 		// choix de la méthode de chiffrement
-		System.out.println("\nSélectionner l'action souhaitée :");
+		System.out.println("Sélectionner l'action souhaitée :");
 		System.out.println("1: Chiffrement symétrique ThreeFish");
-		System.out.println("2: Chiffrement de Cramer-Shoup");
-		System.out.println("3: Vérification d'un Hash");
-		System.out.println("4: Déchiffrement symétrique ThreeFish");
-		System.out.println("5: Déchiffrement Cramer-Shoup");
+		System.out.println("2: Déchiffrement symétrique ThreeFish");
+		System.out.println("3: Chiffrement de Cramer-Shoup");
+		System.out.println("4: Déchiffrement Cramer-Shoup");
+		System.out.println("5: Vérification d'un Hash");
 		// On déclare la variable qui contient le menu
+		Scanner scanner = new Scanner(System.in);
 		int menuInt = scanner.nextInt();
-		if (menuInt == 3) {
+		if (menuInt == 5) {
 			crypto.Hashage();
 			System.out.println("\nFin du programme.");
 			return;
@@ -37,6 +38,7 @@ public class main {
 		
 		// On récupère le contenu du fichier
 		String fileContent = utils.ReadFile(fichier);
+		String fileContent2 = utils.ReadAnyFile(fileName);
 		//System.out.println(fileContent);
 		
 		System.out.println("Vous avez sélectionner le menu : " + menuInt);
@@ -46,15 +48,15 @@ public class main {
 		
 		switch(menuInt) {
 			case 1 : 
-				newContentFile = crypto.ThreeFish(fileInfo, fileContent);
+				newContentFile = crypto.ThreeFish(fileInfo, fileContent2);
 				break;
 			case 2 : 
+				newContentFile =  crypto.DecThreeFish(fileInfo, fileContent);
+				break;
+			case 3 : 
 				newContentFile = crypto.CramerShoup(fileContent);
 				break;
 			case 4 : 
-				newContentFile =  crypto.DecThreeFish(fileInfo, fileContent);
-				break;
-			case 5 : 
 				newContentFile =  crypto.DecCramerShoup("");
 				break;
 		}
