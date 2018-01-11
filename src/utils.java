@@ -29,10 +29,10 @@ public class utils {
 			BufferedReader br=new BufferedReader(ipsr);
 			String ligne;
 //			System.out.println("Contenu :");
-//			while ((ligne=br.readLine())!=null){
+			while ((ligne=br.readLine())!=null){
 //				System.out.println(ligne);
-//				fileContent+=ligne+"\n";
-//			}
+				fileContent+=ligne+"\n";
+			}
 			br.close();
 		}		
 		catch (Exception e){

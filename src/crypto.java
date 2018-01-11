@@ -474,6 +474,7 @@ public class crypto {
 		
 		// Ensuite on chiffre le fichier avec la clé publique
 			// On commence par convertir le fichier en BigInteger
+			System.out.println("contenu : " + contenuFichier);
 			BigInteger m = new BigInteger(contenuFichier.getBytes());
 			
 			// On génère b

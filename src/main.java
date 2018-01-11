@@ -39,7 +39,7 @@ public class main {
 		// On récupère le contenu du fichier
 		String fileContent = utils.ReadFile(fichier);
 		String fileContent2 = utils.ReadAnyFile(fileName);
-		//System.out.println(fileContent);
+		System.out.println(fileContent);
 		
 		System.out.println("Vous avez sélectionner le menu : " + menuInt);
 		
