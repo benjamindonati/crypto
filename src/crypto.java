@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import com.sun.xml.internal.fastinfoset.util.StringArray;
@@ -33,6 +35,9 @@ public class crypto {
 	
 	// Générateurs du groupe 
 	private static BigInteger g1,g2,hg1,hg2;
+	
+	// On génère les variables pour le chiffrement
+	private static BigInteger b1,b2,C,H;
 
 	// Facteurs premiers de (p-1)
 	private static BigInteger[] pMinus1factorization;
@@ -426,30 +431,29 @@ public class crypto {
 		return "";
 	}
 	
-	static String CramerShoup(String contenuFichier) {
+	static void CramerShoup(String contenuFichier) {
 		System.out.println("Chiffrement de CramerShoup en cours...");
 
 		// On commence par générer les clés de chiffrement et déchiffrement
 		GenerateKeysCS();
 		// On enregistre également les clés dans un fichier
 		SavePublicKey();
-		System.out.println("Z = "+ z);
+		
 		// Ensuite on chiffre le fichier avec la clé publique
 			// On commence par convertir le fichier en BigInteger
 			BigInteger m = new BigInteger(contenuFichier.getBytes());
-			System.out.println("m= " + m);
-			
-			// On génère les variables pour le chiffrement
-			BigInteger b1,b2,C,H;
-			
 			
 			// On génère b
 			Random rnd = new Random();
-			BigInteger b = BigInteger.valueOf(rnd.nextInt());
+			BigInteger b;
+			do{
+				b = BigInteger.valueOf(rnd.nextInt());
+				}
+			while(b.compareTo(BigInteger.ZERO) < 0);
 			
+			System.out.println("B= " + b);
 			b1 = g1.modPow(b, primeP);
 			b2 = g2.modPow(b, primeP);
-			
 			
 			C = (h.modPow(b, primeP)).multiply(m);
 			
@@ -458,24 +462,30 @@ public class crypto {
 			byte[] message = concat.getBytes();
 			H = new BigInteger(utils.calcMD5(message).getBytes());
 			
-			System.out.println("concat = " + concat);
-			System.out.println("H = " + H);
-		
+			// On enregistre dans le fichier le contenu chiffré
+			SavePrivateKey();
 			
-			System.out.println("Z = " + z);
-			BigInteger mess = C.divide(b1.modPow(z, primeP));
-			
-			
-			System.out.println("M= "+ new String(mess.toByteArray()));
-			System.out.println("m= "+ contenuFichier);
-			
-		// On retourne un fichier chiffré
-		return " ";
+			System.out.println("Fin du chiffrement");
 	}
 	
-	static String DecCramerShoup(String fichier) {
+	static void DecCramerShoup() {
 		System.out.println("Déchiffrement de ThreeFish en cours...");
-		return "";
+		
+		// On lit le fichier
+		File file = new File("files/SKeyCS.txt");
+		String contentFile = utils.ReadFile(file);			
+		String[] strArray = contentFile.split("\n");
+		
+		BigInteger c = new BigInteger(strArray[0]);
+		BigInteger b1prime = new BigInteger(strArray[7]);
+		BigInteger p = new BigInteger(strArray[6]);
+		BigInteger Z = new BigInteger(strArray[5]);
+		
+		//System.out.println("c=" + c);
+		//System.out.println("b1prime=" + b1prime);
+		BigInteger mess = c.divide(b1prime.modPow(Z, p));
+		
+		System.out.println("M= "+ new String(mess.toByteArray()));
 	}
 	
 	static void Hashage() {
@@ -682,11 +692,19 @@ public class crypto {
 	}	
 
 	static void SavePublicKey() {
-		String fileName = "keysCS";
+		String fileName = "PKeyCS";
 		// Générer la chaîne à écrire
-		String publicKey = "PublicKey=(" + primeP + "," + g1 + "," + g1 + "," + c + "," + d + "," + h + ")";
+		String publicKey = primeP + "\n" + g1 + "\n" + g2 + "\n" + c + "\n" + d + "\n" + h;
 		// Enregistrement fichier
 		utils.CreateFile(fileName, publicKey, false);
+	}
+	
+	static void SavePrivateKey() {
+		String fileName = "SKeyCS";
+		// Générer la chaîne à écrire
+		String privateKey = C + "\n" + x1 + "\n" + x2 + "\n" + y1 + "\n" + y2 + "\n" + z + "\n" + primeP + "\n" + b1;
+		// Enregistrement fichier
+		utils.CreateFile(fileName, privateKey, false);
 	}
 	
 	private static void initPrimes(){

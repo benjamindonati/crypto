@@ -27,9 +27,9 @@ public class utils {
 			InputStreamReader ipsr=new InputStreamReader(ips);
 			BufferedReader br=new BufferedReader(ipsr);
 			String ligne;
-			System.out.println("Contenu :");
+			//System.out.println("Contenu :");
 			while ((ligne=br.readLine())!=null){
-				System.out.println(ligne);
+				//System.out.println(ligne);
 				fileContent+=ligne+"\n";
 			}
 			br.close();

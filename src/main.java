@@ -28,10 +28,10 @@ public class main {
 		String[] fileInfo = fileName.split("\\.");	//[0] Nom 	[1] Extension
 		//System.out.println(Arrays.toString(fileInfo));
 		
-		
 		// On récupère le fichier
 		System.out.println("files/" + fileName);
 		File fichier = new File("files/" + fileName);
+		
 		
 		
 		
@@ -49,13 +49,13 @@ public class main {
 				newContentFile = crypto.ThreeFish(fileInfo, fileContent);
 				break;
 			case 2 : 
-				newContentFile = crypto.CramerShoup(fileContent);
+				crypto.CramerShoup(fileContent);
 				break;
 			case 4 : 
 				newContentFile =  crypto.DecThreeFish(fileInfo, fileContent);
 				break;
 			case 5 : 
-				newContentFile =  crypto.DecCramerShoup("");
+				crypto.DecCramerShoup();
 				break;
 		}
 		
